@@ -3,7 +3,7 @@ from flask import Flask, jsonify, request
 import pickle
 
 app = Flask(__name__)
-model = pickle.load(open('model.pkl', 'rb'))
+model = pickle.load(open('notebooks/finalized_model_1.pkl', 'rb'))
 
 buses = [
     {
@@ -23,10 +23,20 @@ buses = [
 ]
 
 @app.route('/fireprediction')
-def get_buses():
-    return jsonify(buses)
+def get_fire():
+    soil = request.args.get('soil_temperature')
+    wind = request.args.get("wind_speed")
+    dew = request.args.get("dew_point")
+    humidity = request.args.get("rel_humidity")
+    temp = request.args.get("temperature")
+    precip = request.args.get("precipitation")
+
+    prediction = model.predict(soil, wind, dew, humidity, temp, precip)
+    output = prediction
+    return jsonify(output)
 
 @app.route('/smokeprediction')
+#def get_smoke():
 
 @app.route('/buses/<int:index>')
 def get_bus(index):
@@ -50,4 +60,5 @@ def delete_bus(index):
     deleted = buses.pop(index)
     return jsonify(deleted), 200
 
-app.run()
+if __name__ == '__main__':
+    app.run()
