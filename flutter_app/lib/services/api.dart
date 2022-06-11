@@ -27,7 +27,16 @@ class Api {
     return fireData;
   }
 
+  Future<Map<String, dynamic>> flaskFireApi({required String latitude, required String longitude}) async {
+    Map<String, dynamic> data = {};
 
-  
-
+    fireApi(latitude: latitude, longitude: longitude).then((value) async {
+          Map<String, dynamic> fireData = value;
+           var weatherResponse = await http.get(Uri.parse('https://api.ambeedata.com/weather/latest/by-lat-lng?lat=$latitude&lng=$longitude'),
+        headers: {"x-api-key": "99254931d677f7a426eb9f291ee62abce3b1c8340c5ed2e58cc750675e77495a"});
+     data = json.decode(weatherResponse.body.toString());
+    });
+    print(data);
+    return data;
+  }
 }
