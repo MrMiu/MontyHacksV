@@ -1,26 +1,10 @@
 import numpy as np
 from flask import Flask, jsonify, request
 import pickle
+import pandas as pd
 
 app = Flask(__name__)
-model = pickle.load(open('notebooks/finalized_model_1.pkl', 'rb'))
-
-buses = [
-    {
-        "number_plate": "NAX 123",
-        "manufacturer": "Toyota",
-        "model": "Hiace",
-        "year": "2009",
-        "capcity": 18
-    },
-    {
-        "number_plate": "LX Z19",
-        "manufacturer": "Ford",
-        "model": "FordX",
-        "year": "2010",
-        "capcity": 45
-    } 
-]
+model = pickle.load(open('notebooks/finalized_model_2.pkl', 'rb'))
 
 @app.route('/fireprediction')
 def get_fire():
@@ -31,34 +15,13 @@ def get_fire():
     temp = request.args.get("temperature")
     precip = request.args.get("precipitation")
 
-    prediction = model.predict(soil, wind, dew, humidity, temp, precip)
-    output = prediction
-    return jsonify(output)
+    prediction = model.predict_proba(pd.DataFrame([[float(precip), float(temp), float(humidity), float(dew), float(wind), float(soil)]]))
+    # jsonify(output)
+    return str(prediction[0][1])
 
 @app.route('/smokeprediction')
-#def get_smoke():
-
-@app.route('/buses/<int:index>')
-def get_bus(index):
-    bus = buses[index]
-    return jsonify(bus)
-
-@app.route('/buses', methods=['POST'])
-def add_bus():
-    bus = request.get_json()
-    buses.append(bus)
-    return bus
-
-@app.route('/buses/<int:index>', methods=['PUT'])
-def update_bus(index):
-    bus_to_update = request.get_json()
-    buses[index] = bus_to_update
-    return jsonify(buses[index])
-
-@app.route('/buses/<int:index>', methods=['DELETE'])
-def delete_bus(index):
-    deleted = buses.pop(index)
-    return jsonify(deleted), 200
+def get_smoke():
+    return 1
 
 if __name__ == '__main__':
     app.run()
