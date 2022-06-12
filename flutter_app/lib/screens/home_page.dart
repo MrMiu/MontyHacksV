@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:app/screens/panel.dart';
+import 'package:app/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
@@ -25,6 +27,7 @@ class _HomePageState extends State<HomePage> {
   PanelController _pc = PanelController();
 
   late List<County> counties;
+  Api api = Api();
 
   @override
   void initState() {
@@ -88,11 +91,16 @@ class _HomePageState extends State<HomePage> {
       County(name: 'Yolo', latitude: 38.7646, longitude: -121.9018),
       County(name: 'Yuba', latitude: 39.2547, longitude: -121.3999),
     ];
+    
     for(int i = 0; i < counties.length; i++){
-      //ml stuff
-      County county = County(name: counties[i].name, latitude: counties[i].latitude, longitude: counties[i].longitude, color: Colors.red);
-      counties[i] = county;
+      api.flaskFireApi(latitude: "${counties[selectedIndex].latitude}", longitude: "${counties[selectedIndex].longitude}").then((value){
+        double opacity = value["data"];
+        County county = County(name: counties[i].name, latitude: counties[i].latitude, longitude: counties[i].longitude, color: Colors.red.withOpacity(opacity), fire: opacity);
+        counties[i] = county;
+      });
     }
+    
+
     selectedIndex = -1;
     _dataSource = MapShapeSource.asset(
       'assets/geojson/california_counties.geojson',
@@ -107,6 +115,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // for(int i =0; i<counties.length; i++){
+    //   print(counties[i].name);
+    // }
     print(selectedIndex);
     return Scaffold(
       body: SlidingUpPanel(
@@ -175,6 +186,7 @@ class _HomePageState extends State<HomePage> {
           child: selectedIndex == -1
               ? Row(children: const [Text("Select a county")])
               : Panel(
+                fire: counties[selectedIndex].fire!,
                   countyName: counties[selectedIndex].name,
                 ),
         ),

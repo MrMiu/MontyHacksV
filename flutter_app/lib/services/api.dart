@@ -4,18 +4,15 @@ import "package:http/http.dart" as http;
 
 class Api {
   Future<Map<String, dynamic>> fireApi({required String latitude, required String longitude}) async {
-    print("hi");
     Map<String, dynamic> weatherData = {};
-    var weatherResponse = await http.get(Uri.parse(' https://api.ambeedata.com/weather/latest/by-lat-lng?lat=$latitude&lng=$longitude'),
-        headers: {"x-api-key": "99254931d677f7a426eb9f291ee62abce3b1c8340c5ed2e58cc750675e77495a"});
+    var weatherResponse = await http.get(Uri.parse('https://api.ambeedata.com/weather/latest/by-lat-lng?lat=$latitude&lng=$longitude'),
+        headers: {"x-api-key": "e7a8b369605f1c3f5896e17272a17c4b9cd25b1e232cf497159029c4866ae338"});
     weatherData = json.decode(weatherResponse.body.toString());
-    print(weatherData);
 
     Map<String, dynamic> soilData = {};
     var soilResponse = await http.get(Uri.parse('https://api.ambeedata.com/soil/latest/by-lat-lng?lat=$latitude&lng=$longitude'),
-        headers: {"x-api-key": "99254931d677f7a426eb9f291ee62abce3b1c8340c5ed2e58cc750675e77495a"});
+        headers: {"x-api-key": "e7a8b369605f1c3f5896e17272a17c4b9cd25b1e232cf497159029c4866ae338"});
     soilData = json.decode(soilResponse.body.toString());
-    print(soilData);
 
     Map<String, dynamic> fireData = {};
     fireData["Soil Temperature"] = soilData["soil_temperature"];
@@ -23,9 +20,10 @@ class Api {
     fireData["Dew Point"] = weatherData["dewPoint"];
     fireData["Rel Humidity"] = weatherData["humidity"];
     fireData["Temperature"] = weatherData["temperature"];
-    fireData["Precipitation"] = double.parse(weatherData["precipIntensity"]) / 25.4;
+    double precipIntensity = weatherData["precipIntensity"] ?? 0.0;
+    fireData["Precipitation"] = precipIntensity / 25.4;
 
-    return fireData;
+    return fireData["data"];
   }
 
   Future<Map<String, dynamic>> flaskFireApi({required String latitude, required String longitude}) async {
@@ -35,7 +33,7 @@ class Api {
       Map<String, dynamic> fireData = value;
       var weatherResponse = await http.get(
         Uri.parse(
-            'http://127.0.0.1:5000/fireprediction?humidity=${data["humidity"]}&temperature=${data["temperature"]}&dewPoint=${data["dewPoint"]}&windSpeed=${data["windSpeed"]}&soil_temperature=${data["soiltemeprature"]}&precipitation=${data["precipIntensity"]}'),
+            'http://10.0.2.2:5000/fireprediction?humidity=${fireData["humidity"]}&temperature=${fireData["temperature"]}&dewPoint=${fireData["dewPoint"]}&windSpeed=${fireData["windSpeed"]}&soil_temperature=${fireData["soiltemeprature"]}&precipitation=${fireData["precipIntensity"]}'),
       );
       data = json.decode(weatherResponse.body.toString());
     });
